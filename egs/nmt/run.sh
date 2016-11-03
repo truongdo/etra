@@ -34,14 +34,15 @@ if [[ $stage -le 2 ]]; then
   hid_size=1024
   drop_ratio=0.0
   depth=3
-  optimizer="RMSpropGraves"
-  dir=exp/model_RMSpropGraves
+  prob_len=15
+  optimizer="SMORMS3"
+  dir=exp/model_SMORMS3
 
   steps/train_nmt.sh --gpu $gpu --stage 0 --epoch $epoch \
     --emb-size $emb_size --hid-size $hid_size \
     --lr-init $lr_init --lr-scale $lr_scale --lr-stop $lr_stop \
     --depth $depth --drop-ratio $drop_ratio \
-    --optimizer $optimizer \
+    --optimizer $optimizer --prob-len $prob_len\
     --dev-dir exp/feat/dev exp/lang exp/feat/train $dir
   
   # Note that to speed up the evaluation, we use minibatch for the test set
