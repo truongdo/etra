@@ -58,6 +58,10 @@ if __name__ == "__main__":
         optimizer = optimizers.RMSpropGraves(lr=opts.lr)
     elif opts.optimizer == "Adam":
         optimizer = optimizers.Adam()
+    elif opts.optimizer == "SMORMS3":
+        optimizer = optimizers.SMORMS3(lr=opts.lr)
+    else:
+        raise Exception("Optimizer " + opts.optimizer + " is not supported")
     
     if opts.gpu >=0:
         cuda.get_device(opts.gpu).use()

@@ -37,6 +37,7 @@ if [ $# != 3 ]; then
   echo "  --lr-scale    (default 2)            # learning rate descend scale."
   echo "  --lr-stop     (default 2)            # learning rate descend scale."
   echo "  --drop-ratio  (default 0.0)          # dropout ratio."
+  echo "  --optimizer   (default SGD)          # optimizer SGD|RMSpropGraves|Adam|SMORMS3."
   echo "  --epoch       (default 20)           # number of training epoch."
   echo "  --dev-dir     (default None)         # development data set."
   echo "  --cmd (utils/run.pl|utils/queue.pl <queue opts>) # how to run jobs."
