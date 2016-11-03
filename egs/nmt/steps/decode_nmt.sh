@@ -38,7 +38,7 @@ lang_dir=$1
 dat_dir=$2
 model_dir=$3
 dir=$4
-
+echo "Decoding $dat_dir"
 mkdir -p $dir/log
 if [[ $stage -le 0 ]]; then
   $cmd $dir/log/decode.log decode-nmt --gpu $gpu \
