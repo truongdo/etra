@@ -1,0 +1,73 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2016 Truong Do <truongdq54@gmail.com>
+#
+# Distributed under terms of the MIT license.
+
+"""
+
+"""
+from __future__ import print_function
+import optparse
+import chainer
+from chainer import Variable
+import chainer.cuda as cuda
+import chainer.links as L
+import chainer.optimizers as optimizers
+import chainer.functions as F
+import os
+from etra.ling import load_vocab
+from etra.io import smart_open
+import sys
+import numpy as np
+import random
+import chainer.computational_graph as c
+from etra.model.nmt import ATT_NMT
+from etra.io.feat import FeatReader, FeatWriter
+
+parser = optparse.OptionParser("%s output_dir")
+parser.add_option("--gpu", help="GPU", default=-1, type=int)
+parser.add_option("--max-len", help="Max generation length (default 50)", default=50, type=int)
+opts, args = parser.parse_args()
+
+if (not args) or (len(args) != 4):
+    parser.print_help()
+    exit(1)
+
+xp = cuda.cupy if opts.gpu >= 0 else np
+
+dat_dir = args[0]
+lang_dir = args[1]
+in_model = args[2]
+out_dir = args[3]
+
+trg_vocab = load_vocab(os.path.join(lang_dir, "trg.vocab"))
+reverse_vocab = {x: y for y, x in trg_vocab.items()}
+if __name__ == "__main__":
+    src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
+    nnet = ATT_NMT.load(in_model)
+    nnet.train = False
+    if opts.gpu >=0:
+        cuda.get_device(opts.gpu).use()
+        nnet.to_gpu()
+
+    with FeatReader(src_feat_fname, data_type=np.int32) as fin_src,\
+         smart_open(os.path.join(out_dir, "text"), "w", "utf-8") as fout:
+        total_loss = 0
+        for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
+            print("Decoding %d" % bidx)
+            nnet.encode(src_feat)
+            t = Variable(xp.zeros(1, dtype=np.int32), volatile='auto')
+            output = []
+            for i in xrange(opts.max_len):
+                t = nnet.trg_emb(t)
+                t = nnet.decode(t)
+                t = xp.asarray(t.data.argmax(axis=1), dtype=np.int32)
+                output.append(reverse_vocab[t[0]])
+                if t[0] == trg_vocab["</s>"]:
+                    break
+            text = " ".join(output[1:-1])
+            # fout.write(text)
+            print(text)

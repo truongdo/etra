@@ -1,0 +1,91 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2016 Truong Do <truongdq54@gmail.com>
+#
+# Distributed under terms of the MIT license.
+
+"""
+
+"""
+from __future__ import print_function
+import optparse
+import chainer
+from chainer import Variable
+import chainer.cuda as cuda
+import chainer.links as L
+import chainer.optimizers as optimizers
+import chainer.functions as F
+import os
+import sys
+import numpy as np
+import random
+import chainer.computational_graph as c
+from etra.model.nmt import ATT_NMT
+from etra.io.feat import FeatReader
+
+parser = optparse.OptionParser("%s output_dir")
+parser.add_option("--lr", help="Learning rate (default 0.001)", default=0.001, type=float)
+parser.add_option("--seed", help="Random seed (default 0)", type="int", default=0)
+parser.add_option("--gpu", help="GPU", default=-1, type=int)
+parser.add_option("--prob-len", help="Prob len (default 15)", default=15, type=int)
+parser.add_option("--optimizer", help="Optimizer (SGD)", default="SGD")
+
+opts, args = parser.parse_args()
+
+np.random.seed(opts.seed)
+random.seed(opts.seed)
+
+if (not args) or (len(args) != 3):
+    parser.print_help()
+    exit(1)
+
+xp = cuda.cupy if opts.gpu >= 0 else np
+
+dat_dir = args[0]
+in_model = args[1]
+out_dir = args[2]
+
+if __name__ == "__main__":
+    src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
+    trg_feat_fname = os.path.join(dat_dir, "feat_trg.scp")
+    nnet = ATT_NMT.load(in_model)
+    optimizer = None
+    if opts.optimizer == "SGD":
+        optimizer = optimizers.SGD(lr=opts.lr)
+    
+    if opts.gpu >=0:
+        cuda.get_device(opts.gpu).use()
+        nnet.to_gpu()
+
+    optimizer.setup(nnet)
+
+    with FeatReader(src_feat_fname, data_type=np.int32) as fin_src, \
+            FeatReader(trg_feat_fname, data_type=np.int32) as fin_trg:
+        total_loss = 0
+        for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
+            trg_feat = fin_trg.read(name)
+            nnet.encode(src_feat)
+            t = Variable(xp.zeros(trg_feat.shape[0], dtype=np.int32), volatile='auto')
+            accum_loss = 0
+            sen_loss = 0
+            for i in xrange(trg_feat.shape[1]):
+                t = nnet.trg_emb(t)
+                o = nnet.decode(t)
+                t = Variable(xp.asarray(trg_feat[: , i], dtype=np.int32), volatile='auto')
+                loss_i = F.softmax_cross_entropy(o, t)
+                accum_loss += loss_i
+                sen_loss += loss_i.data
+                if (i + 1) % opts.prob_len == 0 or (i + 1) == trg_feat.shape[1]:
+                    nnet.zerograds()
+                    accum_loss.backward()
+                    accum_loss.unchain_backward()
+                    optimizer.update()
+                    accum_loss = 0
+            total_loss += (sen_loss / trg_feat.shape[1])
+            if (bidx + 1) % 10 == 0:
+                print("Iter %d/%d: %.6f" % (bidx + 1, fin_src.size(), total_loss / (bidx + 1)))
+                sys.stdout.flush()
+        print(total_loss / (bidx + 1))
+    nnet.save(out_dir)

@@ -1,0 +1,90 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2016 Truong Do <truongdq54@gmail.com>
+#
+# Distributed under terms of the MIT license.
+
+"""
+
+"""
+from __future__ import print_function
+import sys
+from collections import OrderedDict
+import numpy as np
+from etra.io import smart_open
+from etra.ling import load_vocab, pad
+from etra.io.feat import FeatWriter 
+import operator
+import optparse
+
+parser = optparse.OptionParser()
+parser.add_option("--batch-size", help="Minibatch size (default 128)", default=128, type=int)
+opts, args = parser.parse_args()
+
+def main():
+    src_vocab_fname = args[0]
+    trg_vocab_fname = args[1]
+    text_fname = args[2]
+    src_oscp_fname = args[3]
+    trg_oscp_fname = args[4]
+    
+    src_vocab = load_vocab(src_vocab_fname, "utf-8")
+    trg_vocab = load_vocab(trg_vocab_fname, "utf-8")
+    
+    word2idx = lambda x, vocab: vocab[x] if x in vocab else vocab["<unk>"]
+    with smart_open(text_fname, "r", "utf-8") as fin, \
+            FeatWriter(src_oscp_fname) as fout_src, \
+            FeatWriter(trg_oscp_fname) as fout_trg:
+        
+        data = []
+        # Load and sort the data
+        for line_idx, line in enumerate(fin):
+            line = line.strip()
+            src_text, trg_text = line.split("|||")
+            if not src_text:
+                continue
+            src_len = len(src_text.split())
+            data.append((src_len, line, line_idx))
+            
+        data.sort(key=operator.itemgetter(0))
+        src_data = []
+        trg_data = []
+        max_src_len = 0
+        max_trg_len = 0
+
+        for _, line, line_idx in data:
+            line = line.strip()
+            src_text, trg_text = line.split("|||")
+            
+            src_vec = [src_vocab["<s>"]] + [word2idx(w, src_vocab) for w in src_text.split()]
+            trg_vec = [trg_vocab["<s>"]] + [word2idx(w, trg_vocab) for w in trg_text.split()]
+
+            max_src_len = len(src_vec) if len(src_vec) > max_src_len else max_src_len
+            max_trg_len = len(trg_vec) if len(trg_vec) > max_trg_len else max_trg_len
+
+            src_data.append(src_vec)
+            trg_data.append(trg_vec)
+            if len(src_data) == opts.batch_size:
+                # Pad end of sentence to make them equal length
+                pad(src_data, src_vocab["</s>"], max_src_len)
+                pad(trg_data, trg_vocab["</s>"], max_trg_len)
+                max_src_len = 0
+                max_trg_len = 0
+
+                fout_src.write(str(line_idx), np.asarray(src_data, dtype=np.int32))
+                fout_trg.write(str(line_idx), np.asarray(trg_data, dtype=np.int32))
+                src_data = []
+                trg_data = []
+        if src_data:
+            for x in range(opts.batch_size - len(src_data)):
+                src_data.append(src_data[-1])
+                trg_data.append(trg_data[-1])
+            pad(src_data, src_vocab["</s>"], max_src_len)
+            pad(trg_data, trg_vocab["</s>"], max_trg_len)
+            fout_src.write(str(line_idx), np.asarray(src_data, dtype=np.int32))
+            fout_trg.write(str(line_idx), np.asarray(trg_data, dtype=np.int32))
+
+if __name__ == "__main__":
+    main()

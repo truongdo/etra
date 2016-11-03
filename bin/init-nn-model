@@ -1,0 +1,58 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2016 Truong Do <truongdq54@gmail.com>
+#
+# Distributed under terms of the MIT license.
+
+"""
+
+"""
+from __future__ import print_function
+import optparse
+import chainer
+import chainer.links as L
+import os
+import sys
+import numpy as np
+import random
+import chainer.computational_graph as c
+from etra.model.nmt import ATT_NMT
+
+parser = optparse.OptionParser("%s output_dir")
+parser.add_option("--emb-size", help="Input layer size", type="int", default=1)
+parser.add_option("--depth", help="Number of DNN layer (default 2)", type="int", default=2)
+parser.add_option("--hid-size", help="Hidden layer size (default 100)", type="int", default=100)
+parser.add_option("--seed", help="Random seed (default 0)", type="int", default=0)
+parser.add_option("--drop-ratio", help="Dropout ratio (Default 0.0)", default=0.0, type=float)
+
+opts, args = parser.parse_args()
+
+np.random.seed(opts.seed)
+random.seed(opts.seed)
+
+if (not args) or (len(args) != 3):
+    parser.print_help()
+    exit(1)
+
+src_vocab_size = int(args[0])
+trg_vocab_size = int(args[1])
+out_dir = args[2]
+
+if __name__ == "__main__":
+    # x = chainer.Variable(np.zeros((1, opts.isize), dtype=np.float32))
+
+    nnet = ATT_NMT(src_vocab_size, trg_vocab_size, opts.emb_size, opts.hid_size, opts.depth, drop_ratio=opts.drop_ratio)
+    
+    x = np.asarray([[0, 1], [2, 3]], dtype=np.int32)
+    nnet.encode(x)
+    
+    y = chainer.Variable(np.asarray([0, 0], dtype=np.int32))
+    t = nnet.trg_emb(y)
+    o = nnet.decode(t)
+    
+    g = c.build_computational_graph(o)
+    with open(os.path.join(out_dir, "graph.dot"), 'w') as o:
+        o.write(g.dump())
+    nnet.save(out_dir)
