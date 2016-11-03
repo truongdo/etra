@@ -18,6 +18,7 @@ import chainer.links as L
 import chainer.optimizers as optimizers
 import chainer.functions as F
 import os
+import codecs
 from etra.ling import load_vocab
 from etra.io import smart_open
 import sys
@@ -44,7 +45,9 @@ in_model = args[2]
 out_dir = args[3]
 
 trg_vocab = load_vocab(os.path.join(lang_dir, "trg.vocab"))
-reverse_vocab = {x: y for y, x in trg_vocab.items()}
+src_vocab = load_vocab(os.path.join(lang_dir, "src.vocab"))
+reverse_vocab_trg = {x: y for y, x in trg_vocab.items()}
+reverse_vocab_src = {x: y for y, x in src_vocab.items()}
 if __name__ == "__main__":
     src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
     nnet = ATT_NMT.load(in_model)
@@ -54,10 +57,10 @@ if __name__ == "__main__":
         nnet.to_gpu()
 
     with FeatReader(src_feat_fname, data_type=np.int32) as fin_src,\
-         smart_open(os.path.join(out_dir, "text"), "w", "utf-8") as fout:
+         open(os.path.join(out_dir, "text"), "w") as fout:
         total_loss = 0
         for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
-            print("Decoding %d" % bidx)
+            print("%d: %s" % (bidx, " ".join([reverse_vocab_src[x] for x in src_feat[0]])))
             nnet.encode(src_feat)
             t = Variable(xp.zeros(1, dtype=np.int32), volatile='auto')
             output = []
@@ -65,9 +68,9 @@ if __name__ == "__main__":
                 t = nnet.trg_emb(t)
                 t = nnet.decode(t)
                 t = xp.asarray(t.data.argmax(axis=1), dtype=np.int32)
-                output.append(reverse_vocab[t[0]])
+                output.append(reverse_vocab_trg[t[0]])
                 if t[0] == trg_vocab["</s>"]:
                     break
             text = " ".join(output[1:-1])
-            # fout.write(text)
-            print(text)
+            print("--> ", text)
+            fout.write(text)
