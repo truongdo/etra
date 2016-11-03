@@ -30,7 +30,7 @@ parser.add_option("--lr", help="Learning rate (default 0.001)", default=0.001, t
 parser.add_option("--seed", help="Random seed (default 0)", type="int", default=0)
 parser.add_option("--gpu", help="GPU", default=-1, type=int)
 parser.add_option("--prob-len", help="Prob len (default 15)", default=15, type=int)
-parser.add_option("--optimizer", help="Optimizer (SGD)", default="SGD")
+parser.add_option("--optimizer", help="Optimizer: SGD|RMSpropGraves (default SGD)", default="SGD")
 
 opts, args = parser.parse_args()
 
@@ -54,6 +54,10 @@ if __name__ == "__main__":
     optimizer = None
     if opts.optimizer == "SGD":
         optimizer = optimizers.SGD(lr=opts.lr)
+    elif opts.optimizer == "RMSpropGraves":
+        optimizer = optimizers.RMSpropGraves(lr=opts.lr)
+    elif opts.optimizer == "Adam":
+        optimizer = optimizers.Adam()
     
     if opts.gpu >=0:
         cuda.get_device(opts.gpu).use()
