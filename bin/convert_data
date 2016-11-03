@@ -58,8 +58,8 @@ def main():
             line = line.strip()
             src_text, trg_text = line.split("|||")
             
-            src_vec = [src_vocab["<s>"]] + [word2idx(w, src_vocab) for w in src_text.split()]
-            trg_vec = [trg_vocab["<s>"]] + [word2idx(w, trg_vocab) for w in trg_text.split()]
+            src_vec = [src_vocab["<s>"]] + [word2idx(w, src_vocab) for w in src_text.split()] + [src_vocab["</s>"]]
+            trg_vec = [trg_vocab["<s>"]] + [word2idx(w, trg_vocab) for w in trg_text.split()] + [trg_vocab["</s>"]] 
 
             max_src_len = len(src_vec) if len(src_vec) > max_src_len else max_src_len
             max_trg_len = len(trg_vec) if len(trg_vec) > max_trg_len else max_trg_len
