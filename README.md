@@ -15,3 +15,6 @@ If you want to use GPUs, follow the [instruction](https://github.com/pfnet/chain
 ```
 pip install -e .
 ```
+
+## Examples ##
+Examples on how to build an end-to-end MT system for any language pairs can be found at [egs](https://github.com/truongdo/etra/tree/master/egs/nmt)
