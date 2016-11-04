@@ -86,15 +86,19 @@ class ATT_NMT(chainer.Chain):
         self.dec.reset()
         self.att.reset()
 
-    def decode(self, x, no_att=False):
+    def decode(self, x, no_att=False, oweight=False):
         h = self.dec.update(self.e2h(x))
+        weight = None
         if no_att:
             o = self.dec()
         else:
-            att = self.att(self.S, h)
+            att, weight = self.att(self.S, h, output_weight=True)
             o = self.dec(att_in=att)
         o = self.h2o(o)
-        return o
+        if oweight:
+            return o, weight
+        else:
+            return o
     
     @classmethod
     def load(cls, model_dir):

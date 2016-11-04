@@ -57,7 +57,7 @@ if __name__ == "__main__":
         nnet.to_gpu()
 
     with FeatReader(src_feat_fname, data_type=np.int32) as fin_src,\
-         open(os.path.join(out_dir, "text"), "w") as fout:
+         smart_open(os.path.join(out_dir, "text"), "w") as fout:
         total_loss = 0
         for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
             print("%d: %s" % (bidx, " ".join([reverse_vocab_src[x] for x in src_feat[0]])))
@@ -66,9 +66,15 @@ if __name__ == "__main__":
             output = []
             for i in xrange(opts.max_len):
                 t = nnet.trg_emb(t)
-                t = nnet.decode(t)
+                t, weight = nnet.decode(t, oweight=True)
+                weight = weight.data[0]
+                att = np.argmax(weight)
+                src_w = reverse_vocab_src[src_feat[0][att]]
                 t = xp.asarray(t.data.argmax(axis=1), dtype=np.int32)
-                output.append(reverse_vocab_trg[t[0]])
+                trg_w = reverse_vocab_trg[t[0]]
+                if trg_w == "<unk>":
+                    trg_w = src_w
+                output.append(trg_w)
                 if t[0] == trg_vocab["</s>"]:
                     break
             text = " ".join(output[1:-1])
