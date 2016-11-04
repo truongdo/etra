@@ -17,16 +17,19 @@ All text files have the format of "source|||target", for examples,
     ```
 
 ### run.sh ###
+The script `run.sh` contains everything needed to train a MT system, after
+understanding the idea of each command, just run `./run.sh` to build the system.
+
 1. The first step is to get the vocabulary out from the training data text,
-    ```
+    ```bash
     if [[ $stage -le 0 ]]; then
       steps/get_vocab.sh $data/train exp/lang_$pair || exit 1
     fi
     ```
 
 2. The second step is converting words in text files into word id format using
-the extracted vocabulary,
-    ```
+the extracted vocabulary. Note that we create 2 versions of test data (see `run.sh` for the reason).
+    ```bash
     if [[ $stage -le 1 ]]; then
       for x in train dev;
       do
