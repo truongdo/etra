@@ -13,6 +13,13 @@ pair=vi2en
 data=data/$pair
 
 . ./path.sh
+
+if [[ ! -f data/nmt_example_en_vi.tar.gz ]]; then
+  mkdir -p data
+  (cd data && wget https://dl.dropboxusercontent.com/u/30873072/nmt_example_en_vi.tar.gz && \
+    tar xvpfz nmt_example_en_vi.tar.gz)
+fi
+
 if [[ $stage -le 0 ]]; then
   steps/get_vocab.sh $data/train exp/lang_$pair || exit 1
 fi
