@@ -12,7 +12,7 @@ Minumun requirements:
 ### Install with CPUs ###
 Beware that using CPUs for training is very slow, we strongly recommend to install etra on machines which have GPU cards.
 ```
-pip install .
+pip install -e .
 ```
 
 ### Install with GPUs ###
@@ -21,7 +21,7 @@ the [CUDA instruction](https://github.com/pfnet/chainer#installation-with-cuda).
 
 Then, run
 ```
-pip install .
+pip install -e .
 ```
 
 After installation complete, you can verify whether `etra` has been installed with GPU correctly by running,
