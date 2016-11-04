@@ -25,7 +25,7 @@ import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 from etra.io.feat import FeatReader
 
-parser = optparse.OptionParser("%s output_dir")
+parser = optparse.OptionParser("This program perform 1 epoch of training steps.")
 parser.add_option("--lr", help="Learning rate (default 0.001)", default=0.001, type=float)
 parser.add_option("--seed", help="Random seed (default 0)", type="int", default=0)
 parser.add_option("--gpu", help="GPU", default=-1, type=int)

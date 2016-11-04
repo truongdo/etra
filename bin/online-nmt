@@ -28,7 +28,17 @@ import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 from etra.io.feat import FeatReader, FeatWriter
 
-parser = optparse.OptionParser("%s text-file lang-dir model-dir output-file")
+parser = optparse.OptionParser("""This program perform online machine translation that takes
+input source language sentences and output the translated ones.
+
+Usages:
+%s text-file lang-dir model-dir output-file
+
+Where text-file and output-file can be stdin and stdout.
+
+Examples:
+echo "how are you" | %s - lang-dir model-dir -
+""" % (sys.argv[0], sys.argv[0]))
 parser.add_option("--gpu", help="GPU", default=-1, type=int)
 parser.add_option("--max-len", help="Max generation length (default 50)", default=50, type=int)
 opts, args = parser.parse_args()

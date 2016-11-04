@@ -15,7 +15,11 @@ import os
 import numpy as np
 from etra.io.feat import FeatReader
 
-parser = optparse.OptionParser("""feat-copy [options] feat_scp
+parser = optparse.OptionParser("""This program convert feature file in binary format into
+text format.
+
+Usages:
+feat-copy [options] feat_scp
 
 Examples:
     copy-feat feat.scp feat.scp

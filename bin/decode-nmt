@@ -28,7 +28,14 @@ import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 from etra.io.feat import FeatReader, FeatWriter
 
-parser = optparse.OptionParser("%s output_dir")
+parser = optparse.OptionParser("""This program performs decoding using feature files.
+
+Usage:
+    decode-nmt data-dir lang-dir model-dir output-dir
+
+Example:
+    decode-nmt exp/feat/test exp/lang exp/model exp/model/decode 
+""")
 parser.add_option("--gpu", help="GPU", default=-1, type=int)
 parser.add_option("--max-len", help="Max generation length (default 50)", default=50, type=int)
 opts, args = parser.parse_args()
@@ -48,6 +55,7 @@ trg_vocab = load_vocab(os.path.join(lang_dir, "trg.vocab"))
 src_vocab = load_vocab(os.path.join(lang_dir, "src.vocab"))
 reverse_vocab_trg = {x: y for y, x in trg_vocab.items()}
 reverse_vocab_src = {x: y for y, x in src_vocab.items()}
+
 if __name__ == "__main__":
     src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
     nnet = ATT_NMT.load(in_model)

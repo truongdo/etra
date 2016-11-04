@@ -19,9 +19,21 @@ from etra.io.feat import FeatWriter
 import operator
 import optparse
 
-parser = optparse.OptionParser()
+parser = optparse.OptionParser("""This program convert words in text file into word ids
+and stored them in the binary format that can be used for training purpose.
+
+Usages:
+convert-data src-vocab-file trg-vocab-file text-file src-output trg-output
+
+Examples:
+convert-data exp/lang/src.vocab exp/lang/trg.vocab data/train/text exp/feat/train/src_feat.scp exp/feat/train/trg_feat.scp
+""")
 parser.add_option("--batch-size", help="Minibatch size (default 128)", default=128, type=int)
 opts, args = parser.parse_args()
+
+if len(args) != 5:
+    parser.print_help()
+    exit(1)
 
 def main():
     src_vocab_fname = args[0]

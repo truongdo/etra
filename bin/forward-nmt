@@ -25,7 +25,11 @@ import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 from etra.io.feat import FeatReader
 
-parser = optparse.OptionParser("%s output_dir")
+parser = optparse.OptionParser("""This program performs nnet forward given input features.
+
+Usages:
+forward-nmt data-dir model-dir out-dir
+""")
 parser.add_option("--gpu", help="GPU", default=-1, type=int)
 
 opts, args = parser.parse_args()

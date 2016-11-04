@@ -20,7 +20,7 @@ import random
 import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 
-parser = optparse.OptionParser("%s output_dir")
+parser = optparse.OptionParser("""This program create an initial nnet model""")
 parser.add_option("--emb-size", help="Input layer size", type="int", default=1)
 parser.add_option("--depth", help="Number of DNN layer (default 2)", type="int", default=2)
 parser.add_option("--hid-size", help="Hidden layer size (default 100)", type="int", default=100)
