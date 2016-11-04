@@ -29,4 +29,4 @@ text=$dat_dir/text
 
 mkdir -p $dir/log
 echo "Obtaining vocab from $text"
-$cmd $dir/log/get_vocab.log get_vocab --unk-thres $unk_thres $text $dir/src.vocab $dir/trg.vocab || exit 1
+$cmd $dir/log/get-vocab.log get-vocab --unk-thres $unk_thres $text $dir/src.vocab $dir/trg.vocab || exit 1

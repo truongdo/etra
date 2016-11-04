@@ -35,4 +35,4 @@ trg_vocab=$lang_dir/trg.vocab
 
 mkdir -p $dir/log
 echo "Converting $dat_dir into numeric values"
-$cmd $dir/log/convert_data.log convert_data --batch-size $batch_size $src_vocab $trg_vocab $text $dir/feat_src.scp $dir/feat_trg.scp || exit 1
+$cmd $dir/log/convert-data.log convert-data --batch-size $batch_size $src_vocab $trg_vocab $text $dir/feat_src.scp $dir/feat_trg.scp || exit 1
