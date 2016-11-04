@@ -5,6 +5,8 @@
 #
 # Distributed under terms of the MIT license.
 #
+# This script convert word in text format into word id based
+# on vocabularies extracted by using steps/get_vocab.sh
 
 . ./path.sh
 

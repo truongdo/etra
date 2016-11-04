@@ -50,7 +50,7 @@ if [[ $stage -le 2 ]]; then
   # which requires padding end-of-sentence charater to sentences
   # in the same batch to make them the same length, this will lead to
   # higher error rate than normal. To have the actual error, run the
-  # follow command with exp/feat/test
+  # follow command with exp/feat/test, but it will take more time.
   $cmd $dir/log/test.log forward-nmt --gpu -1 \
         exp/feat/test_batch $dir $dir/test || exit 1
 
