@@ -54,6 +54,7 @@ if __name__ == "__main__":
         total_loss = 0
         for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
             trg_feat = fin_trg.read(name)
+            nnet.reset()
             nnet.encode(src_feat)
             t = Variable(xp.zeros(trg_feat.shape[0], dtype=np.int32), volatile='auto')
             sen_loss = 0
