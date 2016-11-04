@@ -37,7 +37,7 @@ if [[ $stage -le 2 ]]; then
   depth=3
   prob_len=15
   optimizer="RMSpropGraves"
-  dir=exp/model_vi2en_RMSpropGraves
+  dir=exp/model_${pair}_RMSpropGraves
 
   steps/train_nmt.sh --gpu $gpu --stage 0 --epoch $epoch \
     --emb-size $emb_size --hid-size $hid_size \
