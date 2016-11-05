@@ -1,0 +1,60 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2016 Truong Do <truongdq54@gmail.com>
+#
+# Distributed under terms of the MIT license.
+
+"""
+
+"""
+from __future__ import print_function
+import optparse
+import chainer
+from chainer import Variable
+import chainer.links as L
+import chainer.functions as F
+import copy
+import os
+import sys
+from etra.model.nmt import ATT_NMT
+import numpy as np
+
+parser = optparse.OptionParser("This program averages parameters from multiple models.")
+
+opts, args = parser.parse_args()
+
+if (not args) or (len(args) < 2):
+    parser.print_help()
+    exit(1)
+
+xp = np
+
+model_list = [ATT_NMT.load(x) for x in args[:-1]]
+odir = args[-1]
+
+def average(nnet_list):
+    nnet = None
+    if len(nnet_list) == 1:
+        nnet = nnet_list[0]
+    else:
+        nnet = copy.deepcopy(nnet_list[0].copy())
+        
+        # Add parameters together
+        for other_nnet in nnet_list[1:]:
+            for (name_src, param_src), (name_dest, param_dest) in zip(other_nnet.namedparams(), nnet.namedparams()):
+                assert name_src == name_dest
+                new_param = param_src + param_dest
+                param_dest.copydata(new_param)
+
+        # Calculate average
+        for name, param in nnet.namedparams():
+            new_param = param / len(nnet_list)
+            param.copydata(new_param)
+    return nnet
+
+
+if __name__ == "__main__":
+    nnet = average(model_list)
+    nnet.save(odir)
