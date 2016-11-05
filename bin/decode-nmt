@@ -73,7 +73,7 @@ if __name__ == "__main__":
     src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
     nnet = ATT_NMT.load(in_model)
     nnet.train = False
-    if opts.gpu >=0:
+    if gpu >=0:
         cuda.get_device(opts.gpu).use()
         nnet.to_gpu()
 
