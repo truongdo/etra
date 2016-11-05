@@ -24,11 +24,12 @@ import random
 import chainer.computational_graph as c
 from etra.model.nmt import ATT_NMT
 from etra.io.feat import FeatReader
+from etra.utils.gpu import get_gpu_available
 
 parser = optparse.OptionParser("This program perform 1 epoch of training steps.")
 parser.add_option("--lr", help="Learning rate (default 0.001)", default=0.001, type=float)
 parser.add_option("--seed", help="Random seed (default 0)", type="int", default=0)
-parser.add_option("--gpu", help="GPU", default=-1, type=int)
+parser.add_option("--gpu", help="GPU (default auto)", default="auto")
 parser.add_option("--prob-len", help="Prob len (default 15)", default=15, type=int)
 parser.add_option("--optimizer", help="Optimizer: SGD|RMSpropGraves (default SGD)", default="SGD")
 
@@ -37,19 +38,17 @@ opts, args = parser.parse_args()
 np.random.seed(opts.seed)
 random.seed(opts.seed)
 
-if (not args) or (len(args) != 3):
+if (not args) or (len(args) != 4):
     parser.print_help()
     exit(1)
 
-xp = cuda.cupy if opts.gpu >= 0 else np
 
-dat_dir = args[0]
-in_model = args[1]
-out_dir = args[2]
+src_feat_fname = args[0]
+trg_feat_fname = args[1]
+in_model = args[2]
+out_dir = args[3]
 
 if __name__ == "__main__":
-    src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
-    trg_feat_fname = os.path.join(dat_dir, "feat_trg.scp")
     nnet = ATT_NMT.load(in_model)
     optimizer = None
     if opts.optimizer == "SGD":
@@ -62,9 +61,22 @@ if __name__ == "__main__":
         optimizer = optimizers.SMORMS3(lr=opts.lr)
     else:
         raise Exception("Optimizer " + opts.optimizer + " is not supported")
+
+    gpu = opts.gpu
+    if gpu == "auto":
+        gpu = get_gpu_available()
+    else:
+        gpu = int(gpu)
     
-    if opts.gpu >=0:
-        cuda.get_device(opts.gpu).use()
+    if gpu < 0:
+        print("Use CPU")
+    else:
+        print("Use GPU", gpu)
+    
+    xp = cuda.cupy if gpu >= 0 else np
+        
+    if gpu >=0:
+        cuda.get_device(gpu).use()
         nnet.to_gpu()
 
     optimizer.setup(nnet)

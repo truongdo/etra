@@ -14,6 +14,7 @@ import optparse
 import chainer
 from chainer import Variable
 import chainer.cuda as cuda
+from etra.utils.gpu import get_gpu_available
 import chainer.links as L
 import chainer.optimizers as optimizers
 import chainer.functions as F
@@ -30,7 +31,7 @@ parser = optparse.OptionParser("""This program performs nnet forward given input
 Usages:
 forward-nmt data-dir model-dir out-dir
 """)
-parser.add_option("--gpu", help="GPU", default=-1, type=int)
+parser.add_option("--gpu", help="GPU (default auto)", default="auto")
 
 opts, args = parser.parse_args()
 
@@ -38,7 +39,19 @@ if (not args) or (len(args) != 3):
     parser.print_help()
     exit(1)
 
-xp = cuda.cupy if opts.gpu >= 0 else np
+gpu = opts.gpu
+if gpu == "auto":
+    gpu = get_gpu_available()
+else:
+    gpu = int(gpu)
+
+if gpu < 0:
+    print("Use CPU")
+else:
+    print("Use GPU", gpu)
+
+
+xp = cuda.cupy if gpu >= 0 else np
 
 dat_dir = args[0]
 in_model = args[1]
