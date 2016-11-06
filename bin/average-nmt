@@ -21,7 +21,15 @@ import sys
 from etra.model.nmt import ATT_NMT
 import numpy as np
 
-parser = optparse.OptionParser("This program averages parameters from multiple models.")
+parser = optparse.OptionParser("""This program takes multiple models and output an average model where
+parameters are averaged from all other models.
+
+Usages:
+average-nmt <model-dir-1> <model-dir-2> ... <output-model-dir>
+
+Examples:
+average-nmt exp/model/mdl_1/1 exp/model/mdl_1/2 exp/model/mdl_1
+""")
 
 opts, args = parser.parse_args()
 
