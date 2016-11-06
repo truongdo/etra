@@ -1,6 +1,0 @@
-setuptools
-nose
-coverage
-six
-chainer
-nvidia-ml-py
