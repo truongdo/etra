@@ -1,7 +1,7 @@
 # Etra: a machine translation framework based on attentional neural network techniques #
 
 ## Requirements ##
-Minumun requirements:
+Minimum requirements:
 
 * Python 2.7.x
 * Numpy
