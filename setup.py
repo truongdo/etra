@@ -10,7 +10,7 @@ import os
 if __name__ == "__main__":
     setup(
         name="etra",
-        packages = ['etra'], 
+        packages = find_packages(), 
         install_requires=open(os.path.join(
             os.path.dirname(__file__),
             "req.txt"), 'rb').readlines(),
