@@ -62,7 +62,7 @@ if __name__ == "__main__":
     trg_feat_fname = os.path.join(dat_dir, "feat_trg.scp")
     nnet = ATT_NMT.load(in_model)
     nnet.train = False
-    if gpu >=0:
+    if gpu >= 0:
         cuda.get_device(opts.gpu).use()
         nnet.to_gpu()
 
@@ -73,13 +73,13 @@ if __name__ == "__main__":
             trg_feat = fin_trg.read(name)
             nnet.reset()
             nnet.encode(src_feat)
-            t = Variable(xp.zeros(trg_feat.shape[0], dtype=np.int32), volatile='auto')
+            t = Variable(xp.asarray(trg_feat[:, 0], dtype=np.int32), volatile='auto')  # the first character is <s>
             sen_loss = 0
-            for i in xrange(trg_feat.shape[1]):
+            for i in xrange(1, trg_feat.shape[1]):
                 t = nnet.trg_emb(t)
                 o = nnet.decode(t)
-                t = Variable(xp.asarray(trg_feat[: , i], dtype=np.int32), volatile='auto')
+                t = Variable(xp.asarray(trg_feat[:, i], dtype=np.int32), volatile='auto')
                 loss_i = F.softmax_cross_entropy(o, t)
                 sen_loss += loss_i.data
             total_loss += (sen_loss / trg_feat.shape[1])
-        print(total_loss / (bidx + 1 ))
+        print(total_loss / (bidx + 1))
