@@ -74,7 +74,7 @@ if __name__ == "__main__":
     nnet = ATT_NMT.load(in_model)
     nnet.train = False
     if gpu >= 0:
-        cuda.get_device(opts.gpu).use()
+        cuda.get_device(gpu).use()
         nnet.to_gpu()
 
     with FeatReader(src_feat_fname, data_type=np.int32) as fin_src,\
