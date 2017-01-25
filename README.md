@@ -10,7 +10,7 @@ Minimum requirements:
 
 ## Installation ##
 ### Install with CPUs ###
-Beware that using CPUs for training is very slow, we strongly recommend to install etra on machines which have GPU cards.
+Be aware that using CPUs for training is very slow, we strongly recommend to install etra on machines which have GPU cards.
 ```
 pip install -e .
 ```
