@@ -44,3 +44,4 @@ if [[ $stage -le 0 ]]; then
   $cmd $dir/log/decode.log decode-nmt --gpu $gpu \
                 $dat_dir $lang_dir ${model_dir} $dir || exit 1
 fi
+$cmd $dir/stats_mt.log python utils/get_bleu.py $dir || exit 1

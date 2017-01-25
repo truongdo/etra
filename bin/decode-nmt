@@ -71,6 +71,7 @@ reverse_vocab_src = {x: y for y, x in src_vocab.items()}
 
 if __name__ == "__main__":
     src_feat_fname = os.path.join(dat_dir, "feat_src.scp")
+    trg_feat_fname = os.path.join(dat_dir, "feat_trg.scp")
     nnet = ATT_NMT.load(in_model)
     nnet.train = False
     if gpu >= 0:
@@ -78,26 +79,30 @@ if __name__ == "__main__":
         nnet.to_gpu()
 
     with FeatReader(src_feat_fname, data_type=np.int32) as fin_src,\
+         FeatReader(trg_feat_fname, data_type=np.int32) as fin_trg,\
          smart_open(os.path.join(out_dir, "text"), "w") as fout:
         total_loss = 0
-        for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=True)):
+        for bidx, (name, src_feat) in enumerate(fin_src.read_all(shuffle=False)):
             print("%d: %s" % (bidx, " ".join([reverse_vocab_src[x] for x in src_feat[0]])))
             nnet.encode(src_feat)
+            trg_feat = fin_trg.read(name)
             t = Variable(xp.asarray([trg_vocab["<s>"]], dtype=np.int32), volatile="auto")
             output = []
             for i in xrange(opts.max_len):
                 t = nnet.trg_emb(t)
                 t, weight = nnet.decode(t, oweight=True)
                 weight = weight.data[0]
-                att = np.argmax(weight)
+                att = int(np.argmax(weight))
                 src_w = reverse_vocab_src[src_feat[0][att]]
                 t = xp.asarray(t.data.argmax(axis=1), dtype=np.int32)
-                trg_w = reverse_vocab_trg[t[0]]
+                wid = int(t[0])
+                trg_w = reverse_vocab_trg[wid]
                 if trg_w == "<unk>":
                     trg_w = src_w
                 output.append(trg_w)
-                if t[0] == trg_vocab["</s>"]:
+                if trg_w == "</s>":
                     break
             text = " ".join(output[1:-1])
+            ref_text = " ".join([reverse_vocab_trg[int(x)] for x in trg_feat[0][1:-1]])
             print("--> ", text)
-            fout.write(text + "\n")
+            fout.write("%s|||%s\n" % (text, ref_text))
