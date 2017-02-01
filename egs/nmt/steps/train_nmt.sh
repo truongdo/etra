@@ -71,12 +71,15 @@ dev_loss="None"
 lr=$lr_init
 rm $dir/training.log 2>/dev/null
 
-mkdir -p ${dat_dir}/split$nj
-paste $dat_dir/feat_src.scp $dat_dir/feat_trg.scp -d "|" | shuf > /tmp/feat_all.scp
-cut -f 1 -d"|" /tmp/feat_all.scp > /tmp/feat_src.scp || exit 1
-cut -f 2 -d"|" /tmp/feat_all.scp > /tmp/feat_trg.scp || exit 1
-utils/split_data.sh --nj $nj --prefix feat_src /tmp/feat_src.scp ${dat_dir}/split$nj || exit 1
-utils/split_data.sh --nj $nj --prefix feat_trg /tmp/feat_trg.scp ${dat_dir}/split$nj || exit 1
+mkdir -p ${dat_dir}/split$nj .tmp
+get_random() { seed="$1"; openssl enc -aes-256-ctr -pass pass:"$seed" -nosalt < /dev/zero 2>/dev/null; }
+paste $dat_dir/feat_src.scp $dat_dir/feat_trg.scp -d "|" | shuf --random-source=<(get_random $seed) > .tmp/feat_all.scp || exit 1
+cut -f 1 -d"|" .tmp/feat_all.scp > .tmp/feat_src.scp || exit 1
+cut -f 2 -d"|" .tmp/feat_all.scp > .tmp/feat_trg.scp || exit 1
+utils/split_data.sh --nj $nj --prefix feat_src .tmp/feat_src.scp ${dat_dir}/split$nj || exit 1
+utils/split_data.sh --nj $nj --prefix feat_trg .tmp/feat_trg.scp ${dat_dir}/split$nj || exit 1
+rm -rf .tmp
+
 
 for (( e = 1; e < epoch + 1; e++ )); do
     in_mdl=$dir/mdl_e$(($e-1))
@@ -101,14 +104,14 @@ for (( e = 1; e < epoch + 1; e++ )); do
         sleep 2
         mdl_list="$mdl_list $o_mdl/${job}"
       done
-      
+
       # Wait for background process
       for p in $pids; do
         if ! wait $p; then
           exit 1
         fi
       done
-      
+
       $cmd ${o_mdl}/log/average.log average-nmt $mdl_list $o_mdl || exit 1
       if [[ ! -z $dev_dir ]]; then
           $cmd ${o_mdl}/log/dev.log forward-nmt --gpu $gpu \
