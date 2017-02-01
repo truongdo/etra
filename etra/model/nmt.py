@@ -53,11 +53,11 @@ class ATT_NMT(chainer.Chain):
         super(ATT_NMT, self).__init__(enc=enc, att=att, dec=dec, e2h=e2h, src_emb=src_emb, trg_emb=trg_emb, h2o=h2o)
         self.S = None
         self._train = True
-    
+
     @property
     def train(self):
         return self._train
-    
+
     @train.setter
     def train(self, value):
         self._train = value
@@ -99,7 +99,7 @@ class ATT_NMT(chainer.Chain):
             return o, weight
         else:
             return o
-    
+
     @classmethod
     def load(cls, model_dir):
         # Input files
@@ -136,9 +136,9 @@ class ATT_NMT(chainer.Chain):
         # Output files
         fn_model = os.path.join(model_dir, 'nnet.mdl')
         fn_cfg = os.path.join(model_dir, 'nnet.cfg')
-        
+
         # Write out models
         serializers.save_npz(fn_model, self)
-        
+
         with open(fn_cfg, 'w') as fd_cfg:
             config.write(fd_cfg)

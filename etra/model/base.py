@@ -24,11 +24,11 @@ class StackLSTM(ChainList):
         self._drop_ratio = drop_ratio
         super(StackLSTM, self).__init__(*chain_list)
         self._train = True
-    
+
     @property
     def train(self):
         return self._train
-    
+
     @train.setter
     def train(self, value):
         self._train = value
@@ -37,15 +37,12 @@ class StackLSTM(ChainList):
         for lstm in self:
             lstm.reset_state()
 
-    def __call__(self, inp, is_train=False):
+    def __call__(self, inp):
         ret = None
         for i, hidden in enumerate(self):
             h = inp if i == 0 else ret
             ret = hidden(h)
-        if self.train and self._drop_ratio:
-            return F.dropout(ret, train=is_train, ratio=self._drop_ratio)
-        else:
-            return ret
+        return F.dropout(ret, train=self.train, ratio=self._drop_ratio)
 
     def get_state(self):
         ret = []
@@ -90,7 +87,7 @@ class BaseDecoder(chainer.Chain):
                 dec=StackLSTM(isize, osize, depth, drop_ratio)
              )
         self._train = True
-    
+
     def train(self, value):
         self._train = value
         self.dec.train = value
@@ -110,7 +107,7 @@ class BaseEncoder(chainer.Chain):
                 aw = L.Linear(osize * 2, osize)
                 )
         self._train = True
-    
+
     def train(self, value):
         self._train = value
         self.encF.train = value
